@@ -115,12 +115,12 @@ Datepair.prototype = {
 
 	refresh: function()
 	{
-		if (this.startDateInput && this.startDateInput.value && this.endDateInput && this.endDateInput.value) {
+		if (this._inputValue(this.startDateInput) && this._inputValue(this.endDateInput)) {
 			var startDate = this.settings.parseDate(this.startDateInput);
 			var endDate = this.settings.parseDate(this.endDateInput);
 			this.dateDelta = endDate.getTime() - startDate.getTime();
 		}
-		if (this.startTimeInput && this.startTimeInput.value && this.endTimeInput && this.endTimeInput.value) {
+		if (this._inputValue(this.startTimeInput) && this._inputValue(this.endTimeInput)) {
 			var startTime = this.settings.parseTime(this.startTimeInput);
 			var endTime = this.settings.parseTime(this.endTimeInput);
 			this.timeDelta = endTime.getTime() - startTime.getTime();
@@ -158,14 +158,14 @@ Datepair.prototype = {
 		this._unbindChangeHandler();
 
 		if (hasClass(e.target, this.settings.dateClass)) {
-			if (e.target.value != '') {
+			if (this._inputValue(e.target) != '') {
 				this._dateChanged(e.target);
 			} else {
 				this.dateDelta = null;
 			}
 
 		} else if (hasClass(e.target, this.settings.timeClass)) {
-			if (e.target.value != '') {
+			if (this._inputValue(e.target) != '') {
 				this._timeChanged(e.target);
 			} else {
 				this.timeDelta = null;
@@ -177,19 +177,25 @@ Datepair.prototype = {
 		this._bindChangeHandler();
 	},
 
+	_inputValue: function(input) {
+		// In IE9 with a placeholder polyfill, jq(input).val() is needed
+		// to return an empty string when the field contains the placeholder
+		return input && (jq ? jq(input).val() : input.value)
+	},
+
 	_dateChanged: function(target){
 		if (!this.startDateInput || !this.endDateInput) {
 			return
 		}
 
-		if (!this.startDateInput.value || !this.endDateInput.value) {
+		if (!this._inputValue(this.startDateInput) || !this._inputValue(this.endDateInput)) {
 			if (this.settings.defaultDateDelta !== null) {
-				if (this.startDateInput.value) {
+				if (this._inputValue(this.startDateInput)) {
 					var startDate = this.settings.parseDate(this.startDateInput);
 					var newEnd = new Date(startDate.getTime() + this.settings.defaultDateDelta * _ONE_DAY);
 					this.settings.updateDate(this.endDateInput, newEnd);
 
-				} else if (this.endDateInput.value) {
+				} else if (this._inputValue(this.endDateInput)) {
 					var endDate = this.settings.parseDate(this.endDateInput);
 					var newStart = new Date(endDate.getTime() - this.settings.defaultDateDelta * _ONE_DAY);
 					this.settings.updateDate(this.startDateInput, newStart);
@@ -229,13 +235,13 @@ Datepair.prototype = {
 			return
 		}
 
-		if (!this.startTimeInput.value || !this.endTimeInput.value) {
+		if (!this._inputValue(this.startTimeInput) || !this._inputValue(this.endTimeInput)) {
 			if (this.settings.defaultTimeDelta !== null) {
-				if (this.startTimeInput.value) {
+				if (this._inputValue(this.startTimeInput)) {
 					var startTime = this.settings.parseTime(this.startTimeInput);
 					var newEnd = new Date(startTime.getTime() + this.settings.defaultTimeDelta);
 					this.settings.updateTime(this.endTimeInput, newEnd);
-				} else if (this.endTimeInput.value) {
+				} else if (this._inputValue(this.endTimeInput)) {
 					var endTime = this.settings.parseTime(this.endTimeInput);
 					var newStart = new Date(endTime.getTime() - this.settings.defaultTimeDelta);
 					this.settings.updateTime(this.startTimeInput, newStart);
